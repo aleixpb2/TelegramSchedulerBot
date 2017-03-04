@@ -3,3 +3,5 @@
 pip3 install virtualenv
 virtualenv ./
 
+source bin/activate
+
