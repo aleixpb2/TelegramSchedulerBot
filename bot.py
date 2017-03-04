@@ -23,7 +23,7 @@ def create_event(message):
 
 @bot.message_handler(func=lambda message: True)
 def echo_all(message):
-    
+
     print("Message: ", message.text)
     bot.reply_to(message, message.text)
 
