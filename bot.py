@@ -4,6 +4,7 @@ import telebot
 from telebot import types
 import datetime
 from enum import Enum
+from google_credentials import GoogleCredentials
 
 
 # Commands
@@ -16,6 +17,8 @@ from enum import Enum
 def printDebug(message):
     print(str(message.chat.id) + ": " + message.text)
 
+def myfun():
+    return None
 
 def readDate(message, offset): # offset is to ignore commands /from and /to
     # assume input is correct...
@@ -53,7 +56,7 @@ def create_event(message):
     printDebug(message)
     states[message.chat.id] = stateEnum.create_event
     bot.send_message(message.chat.id,
-                     "Fine! Now send me the starting time (/from )and the ending time (/to) in "
+                     "Fine! Now send me the starting time (/from ) and the ending time (/to) in "
                      "the following format:\n`dd/MM/yyyy HH:mm`, and the duration (/duration) in minutes",
                      parse_mode="Markdown")
 
@@ -63,7 +66,7 @@ def delete_event(message):
     printDebug(message)
     states[message.chat.id] = stateEnum.delete_event
     bot.send_message(message.chat.id,
-                     "Fine! Now send me the starting time (/from )and the ending time (/to) in "
+                     "Fine! Now send me the starting time (/from ) and the ending time (/to) in "
                      "the following format:\n`dd/MM/yyyy HH:mm`, and the duration (/duration) in minutes",
                      parse_mode="Markdown")
 
@@ -99,7 +102,10 @@ def dur_inp(message):
         print("Duration is " + str(dur))
 
         # Event created
-        bot.send_message(message.chat.id, "Event created")
+        bot.send_message(message.chat.id, "Event created. Click this link to accept Google Calendar integration.")
+        gc = GoogleCredentials(callback=myfun)
+        url = gc.get_credentials_url()
+        bot.send_message(message.chat.id, url)
         states[message.chat.id] = stateEnum.none
         sendKeyboardButton(bot, message.chat.id)
     elif states[message.chat.id] == stateEnum.to_delete:
@@ -119,8 +125,8 @@ def default(message):
 @bot.callback_query_handler(func=lambda call: True)
 def  test_callback(call):
     print(call)
-    print("User: " + str(call.from_user))
-    # Do stuff
+    print("User: " + str(call.from_user) + " User id: " + str(call.from_user.id))
+
 
 # @bot.callback_query_handler(func=lambda call: True)
 # def callback_inline(call):
