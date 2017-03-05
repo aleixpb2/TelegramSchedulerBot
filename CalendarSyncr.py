@@ -8,10 +8,9 @@ from oauth2client import tools
 from oauth2client.file import Storage
 from google_credentials import GoogleCredentials
 import datetime
-
+from bot import get_data
 try:
     import argparse
-
     flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
 except ImportError:
     flags = None
@@ -22,7 +21,8 @@ SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
 CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Calendar Syncronization'
 
-
+PAX_COUNT = 0
+L = []
 def get_credentials():
     """Gets valid user credentials from storage.
 
@@ -53,19 +53,13 @@ def get_credentials():
     return credentials
 
 
-def get_events(init_t,end_t, sv,calendar_ids):
-    now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
-    print('Getting the upcoming month')
-    week = datetime.timedelta(days=10)
-    t = (datetime.datetime.utcnow() + week).isoformat() + 'Z'
-    eventsResult =sv.events().list(
-            calendarId='primary', timeMax=t, timeMin=now, singleEvents=True,
+def get_events(init_t,end_t, sv,calend):
+    now = init_t.isoformat() + 'Z'  # 'Z' indicates UTC time
+
+    t = end_t.isoformat() + 'Z'
+    eventsResult = sv.events().list(
+            calendarId=calend, timeMax=t, timeMin=now, singleEvents=True,
             orderBy='startTime').execute()
-    for id in calendar_ids:
-        # DO THIS FOR ALL CALENDARS !!! :I
-        eventsResult.append(sv.events().list(
-            calendarId=id, timeMax=t, timeMin=now, singleEvents=True,
-            orderBy='startTime').execute())
     events = eventsResult.get('items', [])
     return events
 def get_timedate_from_minutes (timedate_ini, minutes_passed):
@@ -80,26 +74,26 @@ def get_minutes_between_dates (time_0,time_1):
     time_elapsed =time_1 - time_0
     minutes = (time_elapsed.seconds/60) + time_elapsed.days*1440
     return minutes
-def get_available_slots (calendars,init_time,end_time, duration=60):
-    #init_time and end_time should be DATETIME !!!
-    l = []
+def add_occupied_slots (init_time,end_time,cal,l,duration=60):
+
     strformat = "%Y-%m-%dT%H:%M:%S"
-    for cal in calendars:
-        for event in cal:
-            # many stuff to show event in datetime instead of string
-            event_start = event['start'].get('dateTime',event['start'].get('date')) # type string
-            event_start= event_start[:19]
-            event_start_dt = datetime.datetime.strptime(event_start, strformat)
-            event_end = event['end'].get('dateTime',event['end'].get('date')) #type string
-            event_end = event_end[:19]
-            event_end_dt = datetime.datetime.strptime(event_end,strformat)
+    for event in cal:
+        # many stuff to show event in datetime instead of string
+        event_start = event['start'].get('dateTime',event['start'].get('date')) # type string
+        event_start= event_start[:19]
+        event_start_dt = datetime.datetime.strptime(event_start, strformat)
+        event_end = event['end'].get('dateTime',event['end'].get('date')) #type string
+        event_end = event_end[:19]
+        event_end_dt = datetime.datetime.strptime(event_end,strformat)
 
+        start_time = get_minutes_between_dates(init_time,event_start_dt)
+        end_time = get_minutes_between_dates(init_time,event_end_dt)
+        if start_time>0 and end_time>0:
+            l.append([start_time,end_time])
+    return sorted(l)
 
-            start_time = get_minutes_between_dates(init_time,event_start_dt)
-            end_time = get_minutes_between_dates(init_time,event_end_dt)
-            if start_time>0 and end_time>0:
-                l.append([start_time,end_time])
-    l=sorted(l)
+def get_available_slots (init_time,end_time,l,duration=60):
+    #init_time and end_time should be DATETIME !!!
     accepted_times = []
     if l[0][0]>0:
         accepted_times.append([0,l[0][0]])
@@ -107,8 +101,7 @@ def get_available_slots (calendars,init_time,end_time, duration=60):
         if l[i][1]<l[i+1][0] and l[i+1][0]-l[i][1]>duration:
             accepted_times.append([l[i][1],l[i+1][0]])
     return accepted_times
-
-def SincronizeCalendars(init_time,end_time,duration,calendars):
+"""def SincronizeCalendars(init_time,end_time,duration,calendars):
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     service = discovery.build('calendar', 'v3', http=http)
@@ -122,10 +115,30 @@ def SincronizeCalendars(init_time,end_time,duration,calendars):
         print ("to ")
         print (get_timedate_from_minutes(init_time, i[1]))
         print ("---------------------------------------------------------------")
+"""
 
 def callbackfunction():
     print ("Person accepted")
     return None
+def get_calendars (usr,sv):
+    calendar_list = sv.calendarList().list(pageToken=usr).execute()
+    return calendar_list
+
+def send_credentials (usr_credential):
+    tini, tfi, duration, people = get_data()
+    ++PAX_COUNT #=PAX_COUNT+1
+    http = usr_credential.authorize(httplib2.Http())
+    service = discovery.build('calendar', 'v3', http=http)
+    cal_list = get_calendars (usr_credential,service)
+    for calend in cal_list:
+        L=sorted(L)
+        if PAX_COUNT==people:
+            slots = get_available_slots(tini,tfi,L,duration)
+            func(slots)
+    return None
+
+
+
 def main():
     """Shows basic usage of the Google Calendar API.
 
@@ -133,30 +146,8 @@ def main():
     10 events on the user's calendar.
     """
     print("Starting")
-    credentials = get_credentials()
+    #credentials = get_credentials()
 
-    #gc = GoogleCredentials(callbackfunction)
-    #new_url = gc.get_credentials_url()
-
-
-    #if gc.has_credentials():
-     #   user_url = gc.get_credentials_url()
-    http = credentials.authorize(httplib2.Http())
-    service = discovery.build('calendar', 'v3', http=http)
-
-    get_time_now = datetime.datetime.utcnow()
-    get_time_then = datetime.datetime(2017, 2, 10, 11, 19, 55)
-
-    ################INTRODUIR AQUI EL CALENDARS ##########################
-    #SincronizeCalendars(get_time_now,get_time_then,60, calendar)
-
-    """
-    if not events:
-        print('No upcoming events found.')
-    for event in events:
-        start = event['start'].get('dateTime', event['start'].get('date'))
-        print(start, event['summary'])
-    """
 
 if __name__ == '__main__':
     main()
