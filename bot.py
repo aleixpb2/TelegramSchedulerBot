@@ -45,6 +45,7 @@ bot = telebot.TeleBot(TOKEN)
 stateEnum = Enum('state', 'none create_event delete_event from_create to_create dur_create from_delete to_delete dur_delete')
 states = dict()
 data = dict()
+gc = GoogleCredentials(myfun)
 
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
@@ -112,10 +113,9 @@ def dur_inp(message):
         print("Data: " + str(data[message.chat.id]))
         ############# SEND data
         # Event created
-        bot.send_message(message.chat.id, "Event created. Click this link to accept Google Calendar integration.")
-        gc = GoogleCredentials(callback=myfun)
-        url = gc.get_credentials_url()
-        bot.send_message(message.chat.id, url)
+        bot.send_message(message.chat.id, "Event created")
+        #url = gc.get_credentials_url()
+        #bot.send_message(message.chat.id, url)
         states[message.chat.id] = stateEnum.none
         sendKeyboardButton(bot, message.chat.id)
     elif states[message.chat.id] == stateEnum.to_delete:
@@ -138,6 +138,11 @@ def default(message):
 def  test_callback(call):
     print(call)
     print("User: " + str(call.from_user) + " User id: " + str(call.from_user.id))
+    if gc.has_credentials(str(call.from_user.id)):
+        credentials = gc.get_credentials(str(call.from_user.id))
+        
+    else:
+        bot.send_message(call.from_user.id, "Click this link to accept Google Calendar integration: " + gc.get_credentials_url())
 
 
 # @bot.callback_query_handler(func=lambda call: True)
