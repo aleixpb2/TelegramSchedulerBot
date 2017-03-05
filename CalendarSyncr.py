@@ -1,21 +1,9 @@
-#from __future__ import print_function
 import httplib2
-import os
-import sys
 import bot
 from apiclient import discovery
-from oauth2client import client
-from oauth2client import tools
-from oauth2client.file import Storage
-from google_credentials import GoogleCredentials
 import datetime
 from bot import get_data
 
-# If modifying these scopes, delete your previously saved credentials
-# at ~/.credentials/calendar-python-quickstart.json
-SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
-CLIENT_SECRET_FILE = 'client_secret.json'
-APPLICATION_NAME = 'Calendar Syncronization'
 
 global PAX_COUNT
 L = []
