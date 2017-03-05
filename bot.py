@@ -186,7 +186,6 @@ def test_route():
 
 if __name__ == "__main__":
     options, args = getopt.gnu_getopt(sys.argv, 'r', ['remote'])
-
     remote = False
     for o, a in options:
         if o in ("-r", "--remote"):
