@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import time
 import telebot
 from telebot import types
 import datetime
@@ -52,7 +53,8 @@ gc = GoogleCredentials(myfun)
 
 WEBHOOK_HOST = "35.157.97.244"
 WEBHOOK_PORT = 8443
-WEBHOOK_LISTEN = "172.31.25.192"
+WEBHOOK_LISTEN = "0.0.0.0"
+#WEBHOOK_LISTEN = "172.31.25.192"
 
 WEBHOOK_SSL_CERT = './webhook_cert.pem'  # Path to the ssl certificate
 WEBHOOK_SSL_PRIV = './webhook_pkey.pem'  # Path to the ssl private key
@@ -205,7 +207,10 @@ if __name__ == "__main__":
             remote = True
 
     if remote:
+        logger.log("Removing webhook")
         bot.remove_webhook()
+        time.sleep(2)
+        logger.log("Setting new webhook")
         bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,
                         certificate=open(WEBHOOK_SSL_CERT, 'r'))
         app.run(host=WEBHOOK_LISTEN,
