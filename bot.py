@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import telebot
+from telebot import types
 import datetime
 from enum import Enum
 
@@ -22,6 +23,13 @@ def readDate(message):
     minute = int(message.text[14:16])
     # print(day + " " +  month + " " + year + " " + hour + " " + minute)
     return datetime.datetime(year, month, day, hour, minute)
+
+
+def sendKeyboardButton(bot, id):
+    markup = types.InlineKeyboardMarkup()
+    itembtna = types.InlineKeyboardButton('Participate', callback_data="Participate")
+    markup.add(itembtna)
+    bot.send_message(id, "Click to participate in this event:", reply_markup=markup)
 
 
 TOKEN = '276486690:AAHVjZ369ib_Ms52vnEfY8s8D9Il0FxHyQA'
@@ -62,10 +70,12 @@ def default(message):
     printDebug(message)
     if states[message.chat.id] == stateEnum.create_event:
         d = readDate(message)
-        #print(d.strftime("%A"))
+        # print(d.strftime("%A"))
         ########### CODE TO CREATE THE EVENT
         bot.send_message(message.chat.id, "Event created")
         states[message.chat.id] = stateEnum.none
+        sendKeyboardButton(bot, message.chat.id)
+
     elif states[message.chat.id] == stateEnum.delete_event:
         d = readDate(message)
         ########### CODE TO DELETE THE EVENT
@@ -73,6 +83,10 @@ def default(message):
         states[message.chat.id] = stateEnum.none
     else:
         bot.send_message(message.chat.id, "Can't understand")
+
+@bot.callback_query_handler(func=lambda call: True)
+def  test_callback(call):
+    print(call)
 
 
 bot.polling()
