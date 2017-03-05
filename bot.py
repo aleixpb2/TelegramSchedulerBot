@@ -8,12 +8,11 @@ from enum import Enum
 
 import CalendarSyncr
 from google_credentials import GoogleCredentials
+form google_credentials import app
 import getopt
 import sys
 import flask
 import logging
-
-from google_credentials import *
 
 # Commands
 # create_event - Create an event
@@ -193,6 +192,7 @@ def test_route():
     return "Hello world"
 
 if __name__ == "__main__":
+    print("test")
     options, args = getopt.gnu_getopt(sys.argv, 'r', ['remote'])
     remote = False
     for o, a in options:
