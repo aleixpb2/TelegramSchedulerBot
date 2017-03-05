@@ -18,13 +18,13 @@ def printDebug(message):
 
 
 def readDate(message, offset): # offset is to ignore commands /from and /to
-    # assume input is correct
-    day = int(message.text[offset:2])
-    month = int(message.text[(offset+3):5])
-    year = int(message.text[(offset+6):10])
-    hour = int(message.text[(offset+11):13])
-    minute = int(message.text[(offset+14):16])
-    # print(day + " " +  month + " " + year + " " + hour + " " + minute)
+    # assume input is correct...
+    day = int(message.text[offset:(offset+2)])
+    month = int(message.text[(offset+3):(offset+5)])
+    year = int(message.text[(offset+6):(offset+10)])
+    hour = int(message.text[(offset+11):(offset+13)])
+    minute = int(message.text[(offset+14):(offset+16)])
+    print("Date is " + str(day) + " " +  str(month) + " " + str(year) + " " + str(hour) + " " + str(minute))
     return datetime.datetime(year, month, day, hour, minute)
 
 
@@ -37,7 +37,7 @@ def sendKeyboardButton(bot, id):
 
 TOKEN = '276486690:AAHVjZ369ib_Ms52vnEfY8s8D9Il0FxHyQA'
 bot = telebot.TeleBot(TOKEN)
-stateEnum = Enum('state', 'none create_event delete_event from_inp to_inp dur_inp')
+stateEnum = Enum('state', 'none create_event delete_event from_create to_create dur_create from_delete to_delete dur_delete')
 states = dict()
 
 
@@ -58,7 +58,6 @@ def create_event(message):
                      parse_mode="Markdown")
 
 
-#######################     TODO ANALOGOUS OF CREATE_EVENT
 @bot.message_handler(commands=['delete_event'])
 def delete_event(message):
     printDebug(message)
@@ -72,31 +71,44 @@ def delete_event(message):
 def from_inp(message):
     printDebug(message)
     if states[message.chat.id] == stateEnum.create_event:
-        states[message.chat.id] = stateEnum.from_inp
-        d = readDate(message, 6)
-        # print(d.strftime("%A"))
+        states[message.chat.id] = stateEnum.from_create
+        d = readDate(message, len("/from ")) # print(d.strftime("%A"))
+    elif states[message.chat.id] == stateEnum.delete_event:
+        states[message.chat.id] = stateEnum.from_delete
+        d = readDate(message, len("/from "))
     else:
         bot.send_message(message.chat.id, "Unexpected command")
 
 @bot.message_handler(commands=['to'])
 def to_inp(message):
     printDebug(message)
-    if states[message.chat.id] == stateEnum.from_inp:
-        states[message.chat.id] = stateEnum.to_inp
-        d = readDate(message, 4)
+    if states[message.chat.id] == stateEnum.from_create:
+        states[message.chat.id] = stateEnum.to_create
+        d = readDate(message, len("/to "))
+    elif states[message.chat.id] == stateEnum.from_delete:
+        states[message.chat.id] = stateEnum.to_delete
+        d = readDate(message, len("/to "))
     else:
         bot.send_message(message.chat.id, "Unexpected command")
 
 @bot.message_handler(commands=['duration'])
 def dur_inp(message):
     printDebug(message)
-    if states[message.chat.id] == stateEnum.to_inp:
-        dur = int(message.text)
+    if states[message.chat.id] == stateEnum.to_create:
+        dur = int(message.text[len("/duration "):])
+        print("Duration is " + str(dur))
 
         # Event created
         bot.send_message(message.chat.id, "Event created")
         states[message.chat.id] = stateEnum.none
         sendKeyboardButton(bot, message.chat.id)
+    elif states[message.chat.id] == stateEnum.to_delete:
+        dur = int(message.text[len("/duration "):])
+        print("Duration is " + str(dur))
+
+        # Delete event
+        bot.send_message(message.chat.id, "Event deleted")
+        states[message.chat.id] = stateEnum.none
     else:
         bot.send_message(message.chat.id, "Unexpected command")
 
@@ -107,6 +119,7 @@ def default(message):
 @bot.callback_query_handler(func=lambda call: True)
 def  test_callback(call):
     print(call)
+    print("User: " + str(call.from_user))
     # Do stuff
 
 # @bot.callback_query_handler(func=lambda call: True)
@@ -128,3 +141,19 @@ def  test_callback(call):
 
 
 bot.polling()
+
+# Call example
+# {'message': {'left_chat_member': None, 'audio': None, 'new_chat_title': None, 'venue': None,
+#              'new_chat_photo': None, 'forward_from': None, 'migrate_from_chat_id': None,
+#              'content_type': 'text', 'caption': None, 'group_chat_created': None,
+#              'supergroup_chat_created': None, 'pinned_message': None,
+#              'from_user': <telebot.types.User object at 0x00000225D50422E8>, 'video': None,
+#              'voice': None, 'channel_chat_created': None, 'photo': None, 'date': 1488680389,
+#             'document': None, 'edit_date': None, 'message_id': 329, 'entities': None, 'new_chat_member': None,
+#             'sticker': None, 'reply_to_message': None, 'forward_date': None, 'delete_chat_photo': None,
+#             'chat': <telebot.types.Chat object at 0x00000225D504F6D8>, 'contact': None, 'migrate_to_chat_id': None,
+#             'forward_from_chat': None, 'text': 'Click to participate in this event:', 'location': None},
+#
+# 'data': 'Participate', 'id': '53080350164034740', 'from_user': {'username': 'Aleixpb2', 'id': 12358732,
+#                                                                 'first_name': 'Aleix', 'last_name': None},
+# 'game_short_name': None, 'chat_instance': '8816884457208723824', 'inline_message_id': None}
