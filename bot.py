@@ -149,6 +149,8 @@ def  test_callback(call):
 
 
 bot.polling()
+print("Hello world")
+app.run()
 
 # Call example
 # {'message': {'left_chat_member': None, 'audio': None, 'new_chat_title': None, 'venue': None,

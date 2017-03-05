@@ -62,6 +62,5 @@ class GoogleCredentials(View):
 
 
 app.add_url_rule('/login_successful', view_func=GoogleCredentials.as_view('google_credentials'))
-app.run()
 
 
