@@ -48,8 +48,10 @@ def get_data(id):
 
 def showSlots(id, tini, slots): # slots: initialValue endValue
     bot.send_message(id, "Dates available to everyone:")
-    # for i in range(len(slots)):
-    # get_timedate_from_minutes(tini, minutes_passed)
+    for elem in slots:
+        tinitial = CalendarSyncr.get_timedate_from_minutes(tini, elem[0])
+        tend = CalendarSyncr.get_timedate_from_minutes(tini, elem[1])
+        bot.send_message(id, "From " + tinitial + " to " + tend)
 
 
 TOKEN = '276486690:AAHVjZ369ib_Ms52vnEfY8s8D9Il0FxHyQA'
