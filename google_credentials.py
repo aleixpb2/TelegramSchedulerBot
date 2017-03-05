@@ -41,7 +41,7 @@ class GoogleCredentials(View):
     @staticmethod
     def get_credentials_url():
         flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES,
-                                              redirect_uri="http://localhost/login_successful")
+                                              redirect_uri="http://localhost/login_successful:5000")
         flow.user_agent = APPLICATION_NAME
         url = flow.step1_get_authorize_url()
         print("Url:", url)
@@ -62,4 +62,6 @@ class GoogleCredentials(View):
 
 
 app.add_url_rule('/login_successful', view_func=GoogleCredentials.as_view('google_credentials'))
+app.run()
+
 

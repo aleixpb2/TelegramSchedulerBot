@@ -6,6 +6,7 @@ import datetime
 from enum import Enum
 from google_credentials import GoogleCredentials
 
+from google_credentials import *
 
 # Commands
 # create_event - Create an event
@@ -13,6 +14,7 @@ from google_credentials import GoogleCredentials
 # from - Starting time
 # to - Ending time
 # duration - Duration of the event
+
 
 def printDebug(message):
     print(str(message.chat.id) + ": " + message.text)
