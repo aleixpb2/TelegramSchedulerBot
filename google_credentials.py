@@ -9,6 +9,7 @@ from oauth2client import tools
 from oauth2client.file import Storage
 from flask import Flask
 from flask.views import View
+from flask import request
 app = Flask(__name__)
 
 # If modifying these scopes, delete your previously saved credentials
@@ -59,7 +60,10 @@ class GoogleCredentials(View):
 
     def dispatch_request(self):
         print("Request received")
+        print(request.url)
+        print(request.query_string)
         self.callback()
+        return "Login successful"
 
 
 app.add_url_rule('/login_successful', view_func=GoogleCredentials.as_view('google_credentials'))
