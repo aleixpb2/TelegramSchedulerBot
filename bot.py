@@ -7,8 +7,8 @@ import datetime
 from enum import Enum
 
 import CalendarSyncr
+from google_credentials import app
 from google_credentials import GoogleCredentials
-form google_credentials import app
 import getopt
 import sys
 import flask
