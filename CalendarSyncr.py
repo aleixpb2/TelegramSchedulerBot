@@ -53,17 +53,19 @@ def get_credentials():
     return credentials
 
 
-def get_events(init_t,end_t, sv):
+def get_events(init_t,end_t, sv,calendar_ids):
     now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
     print('Getting the upcoming month')
     week = datetime.timedelta(days=10)
     t = (datetime.datetime.utcnow() + week).isoformat() + 'Z'
-
-
-    # DO THIS FOR ALL CALENDARS !!! :I
-    eventsResult = sv.events().list(
-        calendarId='primary', timeMax=t, timeMin=now, singleEvents=True,
-        orderBy='startTime').execute()
+    eventsResult =sv.events().list(
+            calendarId='primary', timeMax=t, timeMin=now, singleEvents=True,
+            orderBy='startTime').execute()
+    for id in calendar_ids:
+        # DO THIS FOR ALL CALENDARS !!! :I
+        eventsResult.append(sv.events().list(
+            calendarId=id, timeMax=t, timeMin=now, singleEvents=True,
+            orderBy='startTime').execute())
     events = eventsResult.get('items', [])
     return events
 def get_timedate_from_minutes (timedate_ini, minutes_passed):
@@ -106,12 +108,12 @@ def get_available_slots (calendars,init_time,end_time, duration=60):
             accepted_times.append([l[i][1],l[i+1][0]])
     return accepted_times
 
-def SincronizeCalendars(init_time,end_time,duration):
+def SincronizeCalendars(init_time,end_time,duration,calendars):
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     service = discovery.build('calendar', 'v3', http=http)
-
-    events = get_events (init_time,end_time,service)
+    calendars = []
+    events = get_events (init_time,end_time,service,calendars)
     q = get_available_slots([events], init_time, end_time,duration=duration)
     for i in q:
 
@@ -124,7 +126,7 @@ def SincronizeCalendars(init_time,end_time,duration):
 def callbackfunction():
     print ("Person accepted")
     return None
-def main(future_days):
+def main():
     """Shows basic usage of the Google Calendar API.
 
     Creates a Google Calendar API service object and outputs a list of the next
@@ -144,7 +146,9 @@ def main(future_days):
 
     get_time_now = datetime.datetime.utcnow()
     get_time_then = datetime.datetime(2017, 2, 10, 11, 19, 55)
-    SincronizeCalendars(get_time_now,get_time_then,60)
+
+    ################INTRODUIR AQUI EL CALENDARS ##########################
+    #SincronizeCalendars(get_time_now,get_time_then,60, calendar)
 
     """
     if not events:
@@ -155,7 +159,4 @@ def main(future_days):
     """
 
 if __name__ == '__main__':
-    days = 10
-    if len(sys.argv) > 1:
-        days = int(sys.argv[1])
-    main(days)
+    main()
