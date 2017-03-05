@@ -5,6 +5,8 @@ import telebot
 from telebot import types
 import datetime
 from enum import Enum
+
+import CalendarSyncr
 from google_credentials import GoogleCredentials
 import getopt
 import sys
@@ -44,6 +46,12 @@ def sendKeyboardButton(bot, id):
 
 def get_data(id):
     return data[id]
+
+def showSlots(id, tini, slots): # slots: initialValue endValue
+    bot.send_message(id, "Dates available to everyone:")
+    # for i in range(len(slots)):
+    # get_timedate_from_minutes(tini, minutes_passed)
+
 
 TOKEN = '276486690:AAHVjZ369ib_Ms52vnEfY8s8D9Il0FxHyQA'
 bot = telebot.TeleBot(TOKEN)
@@ -160,7 +168,7 @@ def  test_callback(call):
     print("User: " + str(call.from_user) + " User id: " + str(call.from_user.id))
     if gc.has_credentials(str(call.from_user.id)):
         credentials = gc.get_credentials(str(call.from_user.id))
-        send_credentials(credentials)
+        CalendarSyncr.send_credentials(credentials)
 
     else:
         bot.send_message(call.from_user.id, "Click this link to accept Google Calendar integration: " + gc.get_credentials_url())

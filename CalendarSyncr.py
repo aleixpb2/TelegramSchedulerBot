@@ -2,6 +2,7 @@
 import httplib2
 import os
 import sys
+import bot
 from apiclient import discovery
 from oauth2client import client
 from oauth2client import tools
@@ -21,8 +22,9 @@ SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
 CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Calendar Syncronization'
 
-PAX_COUNT = 0
+global PAX_COUNT
 L = []
+
 def get_credentials():
     """Gets valid user credentials from storage.
 
@@ -125,8 +127,9 @@ def get_calendars (usr,sv):
     return calendar_list
 
 def send_credentials (usr_credential):
+    global PAX_COUNT
     tini, tfi, duration, people = get_data()
-    ++PAX_COUNT #=PAX_COUNT+1
+    PAX_COUNT = PAX_COUNT + 1
     http = usr_credential.authorize(httplib2.Http())
     service = discovery.build('calendar', 'v3', http=http)
     cal_list = get_calendars (usr_credential,service)
@@ -134,17 +137,18 @@ def send_credentials (usr_credential):
         L=sorted(L)
         if PAX_COUNT==people:
             slots = get_available_slots(tini,tfi,L,duration)
-            func(slots)
+            bot.showSlots(usr_credential, tini, slots)
     return None
 
 
-
 def main():
+    global PAX_COUNT
     """Shows basic usage of the Google Calendar API.
 
     Creates a Google Calendar API service object and outputs a list of the next
     10 events on the user's calendar.
     """
+    PAX_COUNT = 0
     print("Starting")
     #credentials = get_credentials()
 
