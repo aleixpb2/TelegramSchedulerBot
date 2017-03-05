@@ -6,7 +6,7 @@ from apiclient import discovery
 from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
-
+from google_credentials import GoogleCredentials
 import datetime
 
 try:
@@ -53,12 +53,14 @@ def get_credentials():
     return credentials
 
 
-def get_events(days_event, sv):
+def get_events(init_t,end_t, sv):
     now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
     print('Getting the upcoming month')
-    week = datetime.timedelta(days=days_event)
+    week = datetime.timedelta(days=10)
     t = (datetime.datetime.utcnow() + week).isoformat() + 'Z'
-    print(t)
+
+
+    # DO THIS FOR ALL CALENDARS !!! :I
     eventsResult = sv.events().list(
         calendarId='primary', timeMax=t, timeMin=now, singleEvents=True,
         orderBy='startTime').execute()
@@ -104,6 +106,24 @@ def get_available_slots (calendars,init_time,end_time, duration=60):
             accepted_times.append([l[i][1],l[i+1][0]])
     return accepted_times
 
+def SincronizeCalendars(init_time,end_time,duration):
+    credentials = get_credentials()
+    http = credentials.authorize(httplib2.Http())
+    service = discovery.build('calendar', 'v3', http=http)
+
+    events = get_events (init_time,end_time,service)
+    q = get_available_slots([events], init_time, end_time,duration=duration)
+    for i in q:
+
+        print("from")
+        print (get_timedate_from_minutes(init_time, i[0]))
+        print ("to ")
+        print (get_timedate_from_minutes(init_time, i[1]))
+        print ("---------------------------------------------------------------")
+
+def callbackfunction():
+    print ("Person accepted")
+    return None
 def main(future_days):
     """Shows basic usage of the Google Calendar API.
 
@@ -112,18 +132,19 @@ def main(future_days):
     """
     print("Starting")
     credentials = get_credentials()
+
+    #gc = GoogleCredentials(callbackfunction)
+    #new_url = gc.get_credentials_url()
+
+
+    #if gc.has_credentials():
+     #   user_url = gc.get_credentials_url()
     http = credentials.authorize(httplib2.Http())
     service = discovery.build('calendar', 'v3', http=http)
-    events = get_events(future_days, service)
-    get_time_now = datetime.datetime.utcnow()
-    q = get_available_slots([events], get_time_now, datetime.datetime(2017, 2, 10, 11, 19, 55))
-    for i in q:
 
-        print("from")
-        print (get_timedate_from_minutes(get_time_now, i[0]))
-        print ("to ")
-        print (get_timedate_from_minutes(get_time_now, i[1]))
-        print ("---------------------------------------------------------------")
+    get_time_now = datetime.datetime.utcnow()
+    get_time_then = datetime.datetime(2017, 2, 10, 11, 19, 55)
+    SincronizeCalendars(get_time_now,get_time_then,60)
 
     """
     if not events:
