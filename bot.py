@@ -182,6 +182,7 @@ def webhook():
 @app.route("/test_route")
 def test_route():
     logger.debug("The test route is working properly")
+    return "Hello world"
 
 if __name__ == "__main__":
     options, args = getopt.gnu_getopt(sys.argv, 'r', ['remote'])
