@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import time
 import telebot
 from telebot import types
 import datetime
