@@ -52,7 +52,7 @@ gc = GoogleCredentials(myfun)
 
 WEBHOOK_HOST = "35.157.97.244"
 WEBHOOK_PORT = 8443
-WEBHOOK_LISTEN = "35.157.97.244"
+WEBHOOK_LISTEN = "172.31.25.192"
 
 WEBHOOK_SSL_CERT = './webhook_cert.pem'  # Path to the ssl certificate
 WEBHOOK_SSL_PRIV = './webhook_pkey.pem'  # Path to the ssl private key
