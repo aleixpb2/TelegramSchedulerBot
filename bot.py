@@ -182,6 +182,7 @@ def  test_callback(call):
 # Process webhook calls
 @app.route(WEBHOOK_URL_PATH, methods=['POST'])
 def webhook():
+    logger.log("Webhook received")
     if flask.request.headers.get('content-type') == 'application/json':
         json_string = flask.request.get_data().decode('utf-8')
         update = telebot.types.Update.de_json(json_string)
@@ -189,6 +190,11 @@ def webhook():
         return ''
     else:
         flask.abort(403)
+
+
+@app.route("/test_route")
+def test_route():
+    logger.log("The test route is working properly")
 
 if __name__ == "__main__":
     options, args = getopt.gnu_getopt(sys.argv, 'r', ['remote'])
