@@ -84,6 +84,7 @@ def default(message):
     else:
         bot.send_message(message.chat.id, "Can't understand")
 
+
 @bot.callback_query_handler(func=lambda call: True)
 def  test_callback(call):
     print(call)
