@@ -7,9 +7,7 @@ from telebot import types
 import datetime
 from enum import Enum
 
-import CalendarSyncr
-from google_credentials import app
-from google_credentials import GoogleCredentials
+from google_credentials import * 
 import getopt
 import sys
 import flask
@@ -308,6 +306,8 @@ if __name__ == "__main__":
                 debug=True,
                 threaded=True)
     else:
+        bot.remove_webhook()
+        time.sleep(2)
         bot.polling()
 
 # @bot.callback_query_handler(func=lambda call: True)

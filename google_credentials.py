@@ -3,10 +3,8 @@
 import os
 import sys
 import httplib2
-import bot
 from apiclient import discovery
 import datetime
-from bot import get_data
 from oauth2client import client
 from oauth2client.file import Storage
 from flask import Flask
@@ -23,7 +21,7 @@ APPLICATION_NAME = 'TelegramSchedulerBot'
 
 class GoogleCredentials(View):
 
-    def __init__(self, callback):
+    def __init__(self, callback=None):
         self.callback = callback
 
     @staticmethod
@@ -64,10 +62,9 @@ class GoogleCredentials(View):
         print("Request received")
         print(request.url)
         print(request.query_string)
-        self.callback()
         return "Login successful"
 
 
-app.add_url_rule('/login_successful', view_func=GoogleCredentials.as_view('google_credentials'))
+app.add_url_rule('/login_successful/', view_func=GoogleCredentials.as_view('google_credentials'))
 
 
