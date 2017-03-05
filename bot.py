@@ -44,7 +44,7 @@ TOKEN = '276486690:AAHVjZ369ib_Ms52vnEfY8s8D9Il0FxHyQA'
 bot = telebot.TeleBot(TOKEN)
 stateEnum = Enum('state', 'none create_event delete_event from_create to_create dur_create from_delete to_delete dur_delete')
 states = dict()
-
+data = dict()
 
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
@@ -57,6 +57,7 @@ def send_welcome(message):
 def create_event(message):
     printDebug(message)
     states[message.chat.id] = stateEnum.create_event
+    data[message.chat.id] = []
     bot.send_message(message.chat.id,
                      "Fine! Now send me the starting time (/from ) and the ending time (/to) in "
                      "the following format:\n`dd/MM/yyyy HH:mm`, and the duration (/duration) in minutes",
@@ -67,6 +68,7 @@ def create_event(message):
 def delete_event(message):
     printDebug(message)
     states[message.chat.id] = stateEnum.delete_event
+    data[message.chat.id] = []
     bot.send_message(message.chat.id,
                      "Fine! Now send me the starting time (/from ) and the ending time (/to) in "
                      "the following format:\n`dd/MM/yyyy HH:mm`, and the duration (/duration) in minutes",
@@ -78,9 +80,11 @@ def from_inp(message):
     if states[message.chat.id] == stateEnum.create_event:
         states[message.chat.id] = stateEnum.from_create
         d = readDate(message, len("/from ")) # print(d.strftime("%A"))
+        data[message.chat.id].append(d)
     elif states[message.chat.id] == stateEnum.delete_event:
         states[message.chat.id] = stateEnum.from_delete
         d = readDate(message, len("/from "))
+        data[message.chat.id].append(d)
     else:
         bot.send_message(message.chat.id, "Unexpected command")
 
@@ -90,9 +94,11 @@ def to_inp(message):
     if states[message.chat.id] == stateEnum.from_create:
         states[message.chat.id] = stateEnum.to_create
         d = readDate(message, len("/to "))
+        data[message.chat.id].append(d)
     elif states[message.chat.id] == stateEnum.from_delete:
         states[message.chat.id] = stateEnum.to_delete
         d = readDate(message, len("/to "))
+        data[message.chat.id].append(d)
     else:
         bot.send_message(message.chat.id, "Unexpected command")
 
@@ -102,7 +108,9 @@ def dur_inp(message):
     if states[message.chat.id] == stateEnum.to_create:
         dur = int(message.text[len("/duration "):])
         print("Duration is " + str(dur))
-
+        data[message.chat.id].append(dur)
+        print("Data: " + str(data[message.chat.id]))
+        ############# SEND data
         # Event created
         bot.send_message(message.chat.id, "Event created. Click this link to accept Google Calendar integration.")
         gc = GoogleCredentials(callback=myfun)
@@ -113,7 +121,9 @@ def dur_inp(message):
     elif states[message.chat.id] == stateEnum.to_delete:
         dur = int(message.text[len("/duration "):])
         print("Duration is " + str(dur))
-
+        data[message.chat.id].append(dur)
+        print("Data: " + str(data[message.chat.id]))
+        ############# SEND data
         # Delete event
         bot.send_message(message.chat.id, "Event deleted")
         states[message.chat.id] = stateEnum.none
