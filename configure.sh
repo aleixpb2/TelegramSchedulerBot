@@ -8,7 +8,7 @@ virtualenv ./
 
 source bin/activate
 
-pip3 install pyTelegramBotAPI google-api-python-client
+pip3 install pyTelegramBotAPI google-api-python-client Flask
 
 echo "============================================================"
 echo "Installation finished now do 'source bin/activate' to activate"
