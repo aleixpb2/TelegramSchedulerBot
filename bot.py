@@ -52,8 +52,9 @@ data = dict()
 gc = GoogleCredentials(myfun)
 
 WEBHOOK_HOST = "35.157.97.244"
-WEBHOOK_PORT = 5000
-WEBHOOK_LISTEN = "35.157.97.244"
+WEBHOOK_PORT = 8443
+WEBHOOK_LISTEN = "0.0.0.0"
+#WEBHOOK_LISTEN = "172.31.25.192"
 
 WEBHOOK_SSL_CERT = './webhook_cert.pem'  # Path to the ssl certificate
 WEBHOOK_SSL_PRIV = './webhook_pkey.pem'  # Path to the ssl private key
@@ -62,8 +63,7 @@ WEBHOOK_URL_BASE = "https://%s:%s" % (WEBHOOK_HOST, WEBHOOK_PORT)
 WEBHOOK_URL_PATH = "/%s/" % TOKEN
 
 logger = telebot.logger
-telebot.logger.setLevel(logging.INFO)
-
+telebot.logger.setLevel(logging.DEBUG)
 
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
@@ -167,6 +167,7 @@ def  test_callback(call):
 # Process webhook calls
 @app.route(WEBHOOK_URL_PATH, methods=['POST'])
 def webhook():
+    logger.debug("Webhook received")
     if flask.request.headers.get('content-type') == 'application/json':
         json_string = flask.request.get_data().decode('utf-8')
         update = telebot.types.Update.de_json(json_string)
@@ -174,6 +175,11 @@ def webhook():
         return ''
     else:
         flask.abort(403)
+
+
+@app.route("/test_route")
+def test_route():
+    logger.debug("The test route is working properly")
 
 if __name__ == "__main__":
     options, args = getopt.gnu_getopt(sys.argv, 'r', ['remote'])
@@ -184,7 +190,10 @@ if __name__ == "__main__":
             remote = True
 
     if remote:
+        logger.debug("Removing webhook")
         bot.remove_webhook()
+        time.sleep(2)
+        logger.debug("Setting new webhook")
         bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,
                         certificate=open(WEBHOOK_SSL_CERT, 'r'))
         app.run(host=WEBHOOK_LISTEN,
@@ -211,3 +220,4 @@ if __name__ == "__main__":
 #             i = types.InlineKeyboardButton(text=" ", callback_data="2")
 #             keyboard.add(a, b, c, d, e, f, g, h, i)
 #             bot.edit_message_text(inline_message_id = call.inline_message_id, text = "X", reply_markup=keyboard)
+
