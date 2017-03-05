@@ -64,7 +64,45 @@ def get_events(days_event, sv):
         orderBy='startTime').execute()
     events = eventsResult.get('items', [])
     return events
+def get_timedate_from_minutes (timedate_ini, minutes_passed):
 
+    newtime = timedate_ini + datetime.timedelta(minutes=minutes_passed)
+    return newtime
+
+def get_minutes_between_dates (time_0,time_1):
+
+    #roundedA = time_0.replace(second=0, microsecond=0)
+    #roundedB = time_1.replace(second=0, microsecond=0)
+    time_elapsed =time_1 - time_0
+    minutes = (time_elapsed.seconds/60) + time_elapsed.days*1440
+    return minutes
+def get_available_slots (calendars,init_time,end_time, duration=60):
+    #init_time and end_time should be DATETIME !!!
+    l = []
+    strformat = "%Y-%m-%dT%H:%M:%S"
+    for cal in calendars:
+        for event in cal:
+            # many stuff to show event in datetime instead of string
+            event_start = event['start'].get('dateTime',event['start'].get('date')) # type string
+            event_start= event_start[:19]
+            event_start_dt = datetime.datetime.strptime(event_start, strformat)
+            event_end = event['end'].get('dateTime',event['end'].get('date')) #type string
+            event_end = event_end[:19]
+            event_end_dt = datetime.datetime.strptime(event_end,strformat)
+
+
+            start_time = get_minutes_between_dates(init_time,event_start_dt)
+            end_time = get_minutes_between_dates(init_time,event_end_dt)
+            if start_time>0 and end_time>0:
+                l.append([start_time,end_time])
+    l=sorted(l)
+    accepted_times = []
+    if l[0][0]>0:
+        accepted_times.append([0,l[0][0]])
+    for i in range (len (l)-1):
+        if l[i][1]<l[i+1][0] and l[i+1][0]-l[i][1]>duration:
+            accepted_times.append([l[i][1],l[i+1][0]])
+    return accepted_times
 
 def main(future_days):
     """Shows basic usage of the Google Calendar API.
@@ -77,13 +115,23 @@ def main(future_days):
     http = credentials.authorize(httplib2.Http())
     service = discovery.build('calendar', 'v3', http=http)
     events = get_events(future_days, service)
+    get_time_now = datetime.datetime.utcnow()
+    q = get_available_slots([events], get_time_now, datetime.datetime(2017, 2, 10, 11, 19, 55))
+    for i in q:
 
+        print("from")
+        print (get_timedate_from_minutes(get_time_now, i[0]))
+        print ("to ")
+        print (get_timedate_from_minutes(get_time_now, i[1]))
+        print ("---------------------------------------------------------------")
+
+    """
     if not events:
         print('No upcoming events found.')
     for event in events:
         start = event['start'].get('dateTime', event['start'].get('date'))
         print(start, event['summary'])
-
+    """
 
 if __name__ == '__main__':
     days = 10
