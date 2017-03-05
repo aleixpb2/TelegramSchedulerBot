@@ -101,3 +101,4 @@ bin/
 include/
 
 pip-selfcheck.json
+*.pem

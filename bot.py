@@ -5,6 +5,10 @@ from telebot import types
 import datetime
 from enum import Enum
 from google_credentials import GoogleCredentials
+import getopt
+import sys
+import flask
+import logging
 
 from google_credentials import *
 
@@ -14,7 +18,6 @@ from google_credentials import *
 # from - Starting time
 # to - Ending time
 # duration - Duration of the event
-
 
 def printDebug(message):
     print(str(message.chat.id) + ": " + message.text)
@@ -44,6 +47,19 @@ TOKEN = '276486690:AAHVjZ369ib_Ms52vnEfY8s8D9Il0FxHyQA'
 bot = telebot.TeleBot(TOKEN)
 stateEnum = Enum('state', 'none create_event delete_event from_create to_create dur_create from_delete to_delete dur_delete')
 states = dict()
+
+WEBHOOK_HOST = "35.157.97.244"
+WEBHOOK_PORT = 5000
+WEBHOOK_LISTEN = "35.157.97.244"
+
+WEBHOOK_SSL_CERT = './webhook_cert.pem'  # Path to the ssl certificate
+WEBHOOK_SSL_PRIV = './webhook_pkey.pem'  # Path to the ssl private key
+
+WEBHOOK_URL_BASE = "https://%s:%s" % (WEBHOOK_HOST, WEBHOOK_PORT)
+WEBHOOK_URL_PATH = "/%s/" % TOKEN
+
+logger = telebot.logger
+telebot.logger.setLevel(logging.INFO)
 
 
 @bot.message_handler(commands=['start', 'help'])
@@ -147,10 +163,36 @@ def  test_callback(call):
 #             keyboard.add(a, b, c, d, e, f, g, h, i)
 #             bot.edit_message_text(inline_message_id = call.inline_message_id, text = "X", reply_markup=keyboard)
 
+# Process webhook calls
+@app.route(WEBHOOK_URL_PATH, methods=['POST'])
+def webhook():
+    if flask.request.headers.get('content-type') == 'application/json':
+        json_string = flask.request.get_data().decode('utf-8')
+        update = telebot.types.Update.de_json(json_string)
+        bot.process_new_updates([update])
+        return ''
+    else:
+        flask.abort(403)
 
-bot.polling()
-print("Hello world")
-app.run()
+if __name__ == "__main__":
+    options, args = getopt.gnu_getopt(sys.argv, 'r', ['remote'])
+
+    remote = False
+    for o, a in options:
+        if o in ("-r", "--remote"):
+            remote = True
+
+    if remote:
+        bot.remove_webhook()
+        bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,
+                        certificate=open(WEBHOOK_SSL_CERT, 'r'))
+        app.run(host=WEBHOOK_LISTEN,
+                port=WEBHOOK_PORT,
+                ssl_context=(WEBHOOK_SSL_CERT, WEBHOOK_SSL_PRIV),
+                debug=True,
+                threaded=True)
+    else:
+        bot.polling()
 
 # Call example
 # {'message': {'left_chat_member': None, 'audio': None, 'new_chat_title': None, 'venue': None,
