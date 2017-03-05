@@ -4,10 +4,12 @@ import telebot
 import datetime
 from enum import Enum
 
+from google_credentials import *
 
 # Commands
 # create_event - Create an event
 # delete_event - Delete an event
+
 
 def printDebug(message):
     print(str(message.chat.id) + ": " + message.text)
